@@ -34,12 +34,12 @@ def index():
 def new_entry():
     form = forms.EntryForm()
     if form.validate_on_submit():
-        models.Entry.create(user=g.user._get_current_object(),
-                            title=form.title.data,
-                            timestamp=form.timestamp.data,
-                            time_spent=form.time_spent.data,
-                            content=form.content.data.strip(),
-                            resources=form.resources.data.strip())
+        models.Entry.create(
+            title=form.title.data,
+            timestamp=form.timestamp.data,
+            time_spent=form.time_spent.data,
+            content=form.content.data.strip(),
+            resources=form.resources.data.strip())
         flash("Entry created! Thanks!", "success")
         return redirect(url_for('index'))
     return render_template('new.html', form=form)
