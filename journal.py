@@ -27,47 +27,65 @@ def after_request(response):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    entries = models.Entry.select()
+    return render_template('index.html', entries=entries)
 
 
 @app.route('/new_entry', methods=('GET', 'POST'))
 def new_entry():
     form = forms.EntryForm()
     if form.validate_on_submit():
-        models.Entry.create(
-            title=form.title.data,
-            timestamp=form.timestamp.data,
-            time_spent=form.time_spent.data,
-            content=form.content.data.strip(),
-            resources=form.resources.data.strip())
+        models.Entry.create(title=form.title.data,
+                            timestamp=form.timestamp.data,
+                            time_spent=form.time_spent.data,
+                            content=form.content.data.strip(),
+                            resources=form.resources.data.strip())
         flash("Entry created! Thanks!", "success")
         return redirect(url_for('index'))
     return render_template('new.html', form=form)
 
 
-@app.route('/edit_entry/<slug>', methods=('GET', 'POST'))
-def edit_entry(slug):
-    form = forms.EditEntryForm()
-    if form.validate_on_submit():
-        models.Entry.update(
-            title=form.title.data,
-            slug=slugify(form.title.data),
-            timestamp=form.timestamp.data,
-            time_spent=form.time_spent.data,
-            content=form.content.data,
-            resources=form.resources.data)
-        flash("Entry edited!", 'success')
-        return redirect(url_for('index'))
-    return render_template('edit.html', form=form)
 
-
-@app.route('/details/<slug>')
-def details(slug):
+@app.route('/edit_entry/<title>', methods=('GET', 'POST'))
+def edit_entry(title):
     try:
-        entry = models.Entry.get(models.Entry.slug == slug)
+        entry = models.Entry.get(models.Entry.title==title)
     except models.DoesNotExist:
         abort(404)
-    return render_template('details.html', entry=entry)
+    else:
+        form = forms.EditEntryForm(obj=entry)
+        if form.validate_on_submit():
+            models.Entry.update(
+                title = form.title.data,
+                timestamp = form.timestamp.data,
+                time_spent = form.time_spent.data,
+                content = form.content.data.strip(),
+                resources = form.resources.data.strip()
+            ).where(models.Entry.slug == entry.slug).execute()
+            flash("Entry updated!", "success")
+            return redirect(url_for('index'))
+        return render_template('edit.html', form=form, entry=entry)
+
+
+@app.route('/details/<title>')
+def details(title):
+    try:
+        entry = models.Entry.get(models.Entry.title == title)
+    except models.DoesNotExist:
+        abort(404)
+    return render_template('detail.html', entry=entry)
+
+
+@app.route('/delete/<title>')
+def delete(title):
+    try:
+        entry = models.Entry.get(models.Entry.title == title)
+    except models.DoesNotExist:
+        abort(404)
+    else:
+        entry.delete_instance()
+        flash("Entry deleted!", "success")
+        return redirect(url_for('index'))
 
 
 if __name__ == '__main__':

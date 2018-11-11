@@ -1,7 +1,6 @@
 import datetime
 
 from peewee import *
-from slugify import slugify
 
 
 
@@ -9,14 +8,14 @@ DATABASE = SqliteDatabase('journal.db')
 
 class Entry(Model):
     timestamp = DateTimeField(default=datetime.datetime.now)
-    title = CharField()
-    slug = CharField(unique=True)
+    title = CharField(unique=True)
     time_spent = IntegerField()
     content = TextField()
     resources = TextField()
 
     class Meta:
         database = DATABASE
+        order_by = ('-timestamp',)
 
 
 def initialize():
