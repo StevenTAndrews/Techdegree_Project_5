@@ -61,7 +61,7 @@ def edit_entry(title):
                 time_spent = form.time_spent.data,
                 content = form.content.data.strip(),
                 resources = form.resources.data.strip()
-            ).where(models.Entry.slug == entry.slug).execute()
+            ).where(models.Entry.title == entry.title).execute()
             flash("Entry updated!", "success")
             return redirect(url_for('index'))
         return render_template('edit.html', form=form, entry=entry)
